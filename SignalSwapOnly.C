@@ -56,7 +56,7 @@ TH2D *CreateTemplate(TF1 *fit1, TF1 *fit2, TH2D *reference_histo)
     // your function here
     TString newTitle = TString(reference_histo->GetTitle()) + "Template";
 
-    TH2D *Template = new TH2D(newTitle, newTitle, 1000 / rebin_factor, 1.6, 2.1, 1000 / rebin_factor, 1.6, 2.1);
+    TH2D *Template = new TH2D(newTitle, newTitle, 1000 / rebin_factor, 1.55, 2.2, 1000 / rebin_factor, 1.55, 2.2);
 
     for (int i = 0; i < histo_entries; i++)
     {
@@ -124,19 +124,19 @@ void SignalSwapOnly()
     TH1D *SSWhx = SignalSwap12Mass->ProjectionX("SSWhx");
     TH1D *SSWhy = SignalSwap12Mass->ProjectionY("SSWhy");
 
-    TH2D *SwapOnlyMass = (TH2D *)inf1->Get("SW1SW2Mass_6"); // Full Range of F1F2 Mass
-    SwapOnlyMass->SetMinimum(0);
-    SwapOnlyMass->RebinX(rebin_factor);
-    SwapOnlyMass->RebinY(rebin_factor);
-    TH1D *SWhx = SwapOnlyMass->ProjectionX("SWhx");
-    TH1D *SWhy = SwapOnlyMass->ProjectionY("SWhy");
+    TH2D *SW1SW2Mass = (TH2D *)inf1->Get("SW1SW2Mass_6"); // Full Range of F1F2 Mass
+    SW1SW2Mass->SetMinimum(0);
+    SW1SW2Mass->RebinX(rebin_factor);
+    SW1SW2Mass->RebinY(rebin_factor);
+    TH1D *SWhx = SW1SW2Mass->ProjectionX("SWhx");
+    TH1D *SWhy = SW1SW2Mass->ProjectionY("SWhy");
 
-    TH2D *BkgOnlyMass = (TH2D *)inf1->Get("B1B2Mass_6"); // Full Range of F1F2 Mass
-    BkgOnlyMass->SetMinimum(0);
-    BkgOnlyMass->RebinX(rebin_factor);
-    BkgOnlyMass->RebinY(rebin_factor);
-    TH1D *Bkghx = BkgOnlyMass->ProjectionX("Bkghx");
-    TH1D *Bkghy = BkgOnlyMass->ProjectionY("Bkghy");
+    TH2D *B1B2Mass = (TH2D *)inf1->Get("B1B2Mass_6"); // Full Range of F1F2 Mass
+    B1B2Mass->SetMinimum(0);
+    B1B2Mass->RebinX(rebin_factor);
+    B1B2Mass->RebinY(rebin_factor);
+    TH1D *Bkghx = B1B2Mass->ProjectionX("Bkghx");
+    TH1D *Bkghy = B1B2Mass->ProjectionY("Bkghy");
 
     TH2D *S1SW2Mass = (TH2D *)inf1->Get("S1SW2Mass_6"); // Full Range of F1F2 Mass
     S1SW2Mass->SetMinimum(0);
@@ -165,25 +165,17 @@ void SignalSwapOnly()
     B1SW2Mass->RebinY(rebin_factor);
 
     cout << "File Successfully Opened!" << endl;
+    /*
     M1M2Mass->Add(S1S2Mass);
     //M1M2Mass->Add(S1B2Mass);
     //M1M2Mass->Add(B1S2Mass);
     M1M2Mass->Add(BkgOnlyMass);
     M1M2Mass->Add(SwapOnlyMass);
+    */
     // histo_entries = M1M2Mass->GetEntries();
 
     //~~Next define a signal swap and bkg function for each d0 and dbar candidiate
     //~~Signal is double gaus, swap is double gaus (see notes) bkg is linear pol
-
-    TH2D *S1S2Template = new TH2D("S1S2Template", "S1S2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *S1SW2Template = new TH2D("S1SW2Template", "S1SW2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *S1B2Template = new TH2D("S1B2Template", "S1B2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *B1S2Template = new TH2D("B1S2Template", "B1S2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *B1SW2Template = new TH2D("B1SW2Template", "B1SW2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *B1B2Template = new TH2D("B1B2Template", "B1B2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *SW1S2Template = new TH2D("SW1S2Template", "SW1S2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *SW1SW2Template = new TH2D("SW1SW2Template", "SW1SW2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
-    TH2D *SW1B2Template = new TH2D("SW1B2Template", "SW1B2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
 
 
     //double fit_range_low = 1.8, fit_range_high = 1.92;
@@ -257,11 +249,57 @@ void SignalSwapOnly()
     background2->FixParameter(10, F2->GetParameter(10));
     background2->FixParameter(11, F2->GetParameter(11));
 
-   *CreateTemplate(TF1 *fit1, TF1 *fit2, TH2D *reference_histo)
+   //the following code only needs to be run if creating templates from scratch. otherwise read them in from the input file 
+   /*
+   cout << "Generating template (1) - S1S2" << endl;
+   TH2D *S1S2Template = CreateTemplate(signal1, signal2, S1S2Mass);
+   cout << "Generating template (2) - S1SW2" << endl;
+   TH2D *S1SW2Template = CreateTemplate(signal1, swap2, S1SW2Mass);
+   cout << "Generating template (3) - S1B2" << endl;
+   TH2D *S1B2Template = CreateTemplate(signal1, background2, S1B2Mass);
+
+   cout << "Generating template (4) - SW1S2" << endl;
+   TH2D *SW1S2Template = CreateTemplate(swap1, signal2, SW1S2Mass);
+   cout << "Generating template (5) - SW1SW2" << endl;
+   TH2D *SW1SW2Template = CreateTemplate(swap1, swap2, SW1SW2Mass);
+   cout << "Generating template (6) - SW1B2" << endl;
+   TH2D *SW1B2Template = CreateTemplate(swap1, background2, SW1B2Mass);
+
+   cout << "Generating template (7) - B1S2" << endl;
+   TH2D *B1S2Template = CreateTemplate(background1, signal2, B1S2Mass);
+   cout << "Generating template (8) - B1SW2" << endl;
+   TH2D *B1SW2Template = CreateTemplate(background1, swap2, B1SW2Mass);
+   cout << "Generating template (9) - B1B2" << endl;
+   TH2D *B1B2Template = CreateTemplate(background1, background2, B1B2Mass);
+
+    TCanvas *temp_canvas = new TCanvas("temp_canvas", "temp_canvas", 1000, 1000);
+    temp_canvas->Divide(3,3);
+
+    temp_canvas->cd(1);
+    S1S2Template->Draw("surf1");
+    temp_canvas->cd(2);
+    S1SW2Template->Draw("surf1");
+    temp_canvas->cd(3);
+    S1B2Template->Draw("surf1");
+    temp_canvas->cd(4);
+    SW1S2Template->Draw("surf1");
+    temp_canvas->cd(5);
+    SW1SW2Template->Draw("surf1");
+    temp_canvas->cd(6);
+    SW1B2Template->Draw("surf1");
+    temp_canvas->cd(7);
+    B1S2Template->Draw("surf1");
+    temp_canvas->cd(8);
+    B1SW2Template->Draw("surf1");
+    temp_canvas->cd(9);
+    B1B2Template->Draw("surf1");
+
+    temp_canvas->SaveAs("pdfs/templates_08Nov.root");
+    */
 
 
 
-
+    /*
     TCanvas *cg = new TCanvas("cg", "cg", 800, 1200);
     cg->Divide(2, 3);
     cg->cd(1);
@@ -288,7 +326,7 @@ void SignalSwapOnly()
     for (int i = 3; i < 4; i++)
     {
         fitF1F2->FixParameter(0, S1S2Mass->GetEntries());     // s1s2
-        /*
+        //////////
         fitF1F2->FixParameter(1, BkgOnlyMass->GetEntries());  // b1b2
         fitF1F2->FixParameter(2, SwapOnlyMass->GetEntries()); // sw1sw2
         fitF1F2->FixParameter(3, S1B2Mass->GetEntries());     // s1b2
@@ -297,7 +335,7 @@ void SignalSwapOnly()
         fitF1F2->FixParameter(6, S1SW2Mass->GetEntries());    // s1sw2
         fitF1F2->FixParameter(7, B1SW2Mass->GetEntries());    // b1sw2
         fitF1F2->FixParameter(8, SW1B2Mass->GetEntries());    // sw1b2
-        */
+        ///////////////
         for (int i=1; i<9; i++){
             fitF1F2->FixParameter(i, 0.0);
         }
@@ -388,13 +426,25 @@ void SignalSwapOnly()
 
         getchar();
     }
+    */
 
 
     outfile->cd();
 
+    S1S2Template->Write();
+    S1SW2Template->Write();
+    S1B2Template->Write();
+    SW1S2Template->Write();
+    SW1SW2Template->Write();
+    SW1B2Template->Write();
+    B1S2Template->Write();
+    B1SW2Template->Write();
+    B1B2Template->Write();
+    /*
     M1M2MassClone->Write();
     M1M2Mass->Write();
     fitF1F2->Write();
+    */
 
     outfile->Close();
 }
