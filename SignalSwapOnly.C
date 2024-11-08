@@ -15,8 +15,6 @@
 #include "TMath.h"
 #include <TPDF.h>
 
-//this is a tiny test
-
 double histo_entries = 1.0e+08;
 const double avg_mass = 1.865, std_mass = 1.902e-02, fg_lower = avg_mass - 3 * std_mass, fg_upper = avg_mass + 3 * std_mass; // July 30 updates
 // const double fit_range_low = 1.82, fit_range_high = 1.9, D0_mass = 1.8648;
@@ -26,6 +24,7 @@ const int rebin_factor = 10;
 const float in_val = -0.5 * TMath::Pi(), sc_val = (2 * TMath::Pi() / 5);
 const float phi_array[5] = {in_val + sc_val, in_val + 2 * sc_val, in_val + 3 * sc_val, in_val + 4 * sc_val};
 const bool check_templates = false;
+const float fit_range_low = 1.55,  fit_range_high = 2.2;
 using namespace std;
 
 Double_t MyCustomFunction(Double_t *x, Double_t *par)
@@ -176,11 +175,19 @@ void SignalSwapOnly()
     //~~Next define a signal swap and bkg function for each d0 and dbar candidiate
     //~~Signal is double gaus, swap is double gaus (see notes) bkg is linear pol
 
-    //TF1 *F1 = (TF1 *)inf2->Get("F1_6");
-    //TF1 *F2 = (TF1 *)inf2->Get("F2_6");
+    TH2D *S1S2Template = new TH2D("S1S2Template", "S1S2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *S1SW2Template = new TH2D("S1SW2Template", "S1SW2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *S1B2Template = new TH2D("S1B2Template", "S1B2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *B1S2Template = new TH2D("B1S2Template", "B1S2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *B1SW2Template = new TH2D("B1SW2Template", "B1SW2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *B1B2Template = new TH2D("B1B2Template", "B1B2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *SW1S2Template = new TH2D("SW1S2Template", "SW1S2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *SW1SW2Template = new TH2D("SW1SW2Template", "SW1SW2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+    TH2D *SW1B2Template = new TH2D("SW1B2Template", "SW1B2Template", 100, fit_range_low, fit_range_high, 100, fit_range_low, fit_range_high);
+
 
     //double fit_range_low = 1.8, fit_range_high = 1.92;
-/*
+    /*
 
     S1S2Template = (TH2D *)inf3->Get("S1S2Mass_6Template");
     if (!S1S2Template)
@@ -194,6 +201,66 @@ void SignalSwapOnly()
     SW1SW2Template = (TH2D *)inf3->Get("SW1SW2Mass_6Template");
     SW1B2Template = (TH2D *)inf3->Get("SW1B2Mass_6Template");
     */
+
+
+    TF1 *F1 = (TF1 *)inf2->Get("F1_6");
+
+    TF1 *signal1 = new TF1("signal1", "([6]*[7]*([0]*TMath::Gaus(x,[1],[2])/(sqrt(2*3.14159)*[2]) + [5]*((1-[0]))*TMath::Gaus(x,[1],[3])/(sqrt(2*3.14159)*[3]) + (1-[5])* (1-[0])*TMath::Gaus(x,[1],[4])/(sqrt(2*3.14159)*[4])))", fit_range_low, fit_range_high);
+    signal1->FixParameter(0, F1->GetParameter(4));  // ratio btw 1 and 2
+    signal1->FixParameter(1, F1->GetParameter(1));  // mean
+    signal1->FixParameter(2, F1->GetParameter(2));  // sigma 1
+    signal1->FixParameter(3, F1->GetParameter(3));  // sihgma 2
+    signal1->FixParameter(4, F1->GetParameter(14)); // sigma 3
+    signal1->FixParameter(5, F1->GetParameter(12)); // ratio btw gaus 2 & 3
+    signal1->FixParameter(6, F1->GetParameter(0));  // scaling
+    signal1->FixParameter(7, F1->GetParameter(5));  // signal fraction
+
+    TF1 *swap1 = new TF1("swap1", "[0]*(1-[5])*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6])) + (1-[4])*(TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6]))))", fit_range_low, fit_range_high);
+    swap1->FixParameter(0, F1->GetParameter(0));  // norm
+    swap1->FixParameter(1, F1->GetParameter(16)); // mean mass
+    swap1->FixParameter(2, F1->GetParameter(7));  // sigma1
+    swap1->FixParameter(3, F1->GetParameter(15)); // sigma2
+    swap1->FixParameter(4, F1->GetParameter(13)); // ratio
+    swap1->FixParameter(5, F1->GetParameter(5));  // signal fraction
+    swap1->FixParameter(6, F1->GetParameter(6));  // smearing
+
+    TF1 *background1 = new TF1("background1", "[8] + [9]*x + [10]*x*x + [11]*x*x*x", fit_range_low, fit_range_high);
+    background1->FixParameter(8, F1->GetParameter(8));
+    background1->FixParameter(9, F1->GetParameter(9));
+    background1->FixParameter(10, F1->GetParameter(10));
+    background1->FixParameter(11, F1->GetParameter(11));
+
+    TF1 *F2 = (TF1 *)inf2->Get("F2_6");
+
+    TF1 *signal2 = new TF1("signal2", "([6]*[7]*([0]*TMath::Gaus(x,[1],[2])/(sqrt(2*3.14159)*[2]) + [5]*((1-[0]))*TMath::Gaus(x,[1],[3])/(sqrt(2*3.14159)*[3]) + (1-[5])* (1-[0])*TMath::Gaus(x,[1],[4])/(sqrt(2*3.14159)*[4])))", fit_range_low, fit_range_high);
+    signal2->FixParameter(0, F2->GetParameter(4));  // ratio btw 1 and 2
+    signal2->FixParameter(1, F2->GetParameter(1));  // mean
+    signal2->FixParameter(2, F2->GetParameter(2));  // sigma 1
+    signal2->FixParameter(3, F2->GetParameter(3));  // sihgma 2
+    signal2->FixParameter(4, F2->GetParameter(14)); // sigma 3
+    signal2->FixParameter(5, F2->GetParameter(12)); // ratio btw gaus 2 & 3
+    signal2->FixParameter(6, F2->GetParameter(0));  // scaling
+    signal2->FixParameter(7, F2->GetParameter(5));  // signal fraction
+
+    TF1 *swap2 = new TF1("swap2", "[0]*(1-[5])*([4]*TMath::Gaus(x,[1],[2]*(1.0 +[6]))/(sqrt(2*3.14159)*[2]*(1.0 +[6])) + (1-[4])*(TMath::Gaus(x,[1],[3]*(1.0 +[6]))/(sqrt(2*3.14159)*[3]*(1.0 +[6]))))", fit_range_low, fit_range_high);
+    swap2->FixParameter(0, F2->GetParameter(0));  // norm
+    swap2->FixParameter(1, F2->GetParameter(16)); // mean mass
+    swap2->FixParameter(2, F2->GetParameter(7));  // sigma1
+    swap2->FixParameter(3, F2->GetParameter(15)); // sigma2
+    swap2->FixParameter(4, F2->GetParameter(13)); // ratio
+    swap2->FixParameter(5, F2->GetParameter(5));  // signal fraction
+    swap2->FixParameter(6, F2->GetParameter(6));  // smearing
+    
+    TF1 *background2 = new TF1("background2", "[8] + [9]*x + [10]*x*x + [11]*x*x*x", fit_range_low, fit_range_high);
+    background2->FixParameter(8, F2->GetParameter(8));
+    background2->FixParameter(9, F2->GetParameter(9));
+    background2->FixParameter(10, F2->GetParameter(10));
+    background2->FixParameter(11, F2->GetParameter(11));
+
+   *CreateTemplate(TF1 *fit1, TF1 *fit2, TH2D *reference_histo)
+
+
+
 
     TCanvas *cg = new TCanvas("cg", "cg", 800, 1200);
     cg->Divide(2, 3);
