@@ -76,38 +76,38 @@ TH2D *CreateClone(TH2D *inputHisto, TH2D *templato)
                                 inputHisto->GetNbinsX(), inputHisto->GetXaxis()->GetXmin(), inputHisto->GetXaxis()->GetXmax(),
                                 inputHisto->GetNbinsY(), inputHisto->GetYaxis()->GetXmin(), inputHisto->GetYaxis()->GetXmax());
     inputHisto->Copy(*histoClone);
+    histoClone->Scale(1.0/histoClone->GetEntries());
     histoClone->SetTitle(newTitle);
     histoClone->Add(templato, -1);
     histoClone->SetLineColor(1);
-    histoClone->SetMaximum(inputHisto->GetMaximum());
+    histoClone->SetMaximum(templato->GetMaximum());
     return histoClone;
 }
 
 
 void SignalSwapOnly()
 {
-    TFile *outfile = new TFile("templates_out.root", "recreate");
+    TFile *outfile = new TFile("out.root", "recreate");
+   // TFile *outfile = new TFile("templates_out.root", "recreate");
 
     //~~First open the file nad retrieve all histograms & their x and y projections
 
     cout << "working to open file..." << endl;
     //TString inputfile1 = "TH2F_output_1k.root";
-    TString inputfile1 = "data_files/TH2F_06Nov.root";
+    TString inputfile1 = "TH2F_08Nov_yesskip.root";
     TFile *inf1 = TFile::Open(inputfile1);
-    TString fits_file_path = "TF1_outputs_06Nov_swap_mean.root";
+    TString fits_file_path = "TF1_outputs_08Nov_swap_mean.root";
     //TString fits_file_path = "TF1_outputs_28Oct_swap_mean.root";
     TFile *inf2 = TFile::Open(fits_file_path);
-    /*
     TString templates_path = "templates_out.root"; // actual one we need
     TFile *inf3 = TFile::Open(templates_path);
-    */
 
-    //TH2D *M1M2Mass = (TH2D *)inf1->Get("M1M2Mass_6"); // Full Range of F1F2 Mass
-    TH2D *M1M2Mass = new TH2D("M1M2Mass", "M1M2Mass", 100, 1.6, 2.1, 100, 1.6, 2.1); // Full Range of F1F2 Mass
-    //M1M2Mass->RebinX(rebin_factor);
-    //M1M2Mass->RebinY(rebin_factor);
+    TH2D *M1M2Mass = (TH2D *)inf1->Get("M1M2Mass_6"); // Full Range of F1F2 Mass
+    M1M2Mass->RebinX(rebin_factor);
+    M1M2Mass->RebinY(rebin_factor);
     TH1D *M1M2hx = M1M2Mass->ProjectionX("M1M2hx");
     TH1D *M1M2hy = M1M2Mass->ProjectionY("M1M2hy");
+    //TH2D *M1M2Mass = new TH2D("M1M2Mass", "M1M2Mass", 100, 1.6, 2.1, 100, 1.6, 2.1); // Full Range of F1F2 Mass
 
     TH2D *S1S2Mass = (TH2D *)inf1->Get("S1S2Mass_6"); // Full Range of F1F2 Mass
     S1S2Mass->RebinX(rebin_factor);
@@ -164,6 +164,7 @@ void SignalSwapOnly()
     B1SW2Mass->RebinX(rebin_factor);
     B1SW2Mass->RebinY(rebin_factor);
 
+
     cout << "File Successfully Opened!" << endl;
     /*
     M1M2Mass->Add(S1S2Mass);
@@ -179,7 +180,6 @@ void SignalSwapOnly()
 
 
     //double fit_range_low = 1.8, fit_range_high = 1.92;
-    /*
 
     S1S2Template = (TH2D *)inf3->Get("S1S2Mass_6Template");
     if (!S1S2Template)
@@ -192,8 +192,53 @@ void SignalSwapOnly()
     SW1S2Template = (TH2D *)inf3->Get("SW1S2Mass_6Template");
     SW1SW2Template = (TH2D *)inf3->Get("SW1SW2Mass_6Template");
     SW1B2Template = (TH2D *)inf3->Get("SW1B2Mass_6Template");
+
+    //following is code to check each created template agaist data 
+    /*
+    TH2D *cloneS1S2 = CreateClone(S1S2Mass, S1S2Template);
+    TH2D *cloneS1SW2 = CreateClone(S1SW2Mass, S1SW2Template);
+    TH2D *cloneS1B2 = CreateClone(S1B2Mass, S1B2Template);
+
+    TH2D *cloneSW1S2 = CreateClone(SW1S2Mass, SW1S2Template);
+    TH2D *cloneSW1SW2 = CreateClone(SW1SW2Mass, SW1SW2Template);
+    TH2D *cloneSW1B2 = CreateClone(SW1B2Mass, SW1B2Template);
+
+    TH2D *cloneB1S2 = CreateClone(B1S2Mass, B1S2Template);
+    TH2D *cloneB1SW2 = CreateClone(B1SW2Mass, B1SW2Template);
+    TH2D *cloneB1B2 = CreateClone(B1B2Mass, B1B2Template);
+
+    TCanvas *temp_check = new TCanvas("temp_check", "temp_check", 1000, 1000);
+    temp_check->Divide(3,3);
+    temp_check->cd(1);
+    cloneS1S2->Draw("surf1");
+    temp_check->cd(2);
+    cloneS1SW2->Draw("surf1");
+    temp_check->cd(3);
+    cloneS1B2->Draw("surf1");
+    temp_check->cd(4);
+    cloneSW1S2->Draw("surf1");
+    temp_check->cd(5);
+    cloneSW1SW2->Draw("surf1");
+    temp_check->cd(6);
+    cloneSW1B2->Draw("surf1");
+    temp_check->cd(7);
+    cloneB1S2->Draw("surf1");
+    temp_check->cd(8);
+    cloneB1SW2->Draw("surf1");
+    temp_check->cd(9);
+    cloneB1B2->Draw("surf1");
+    //temp_check->SaveAs("pdfs/temp_check_08Nov.pdf");
+
+    TCanvas *c1 = new TCanvas("c1", "c1", 1000, 1000);
+    c1->cd();
+    Bkghx->Scale(1.0 / Bkghx->GetEntries());
+    Bkghx->Draw();
+    B1B2Template->ProjectionX()->SetLineColor(kRed);
+    B1B2Template->ProjectionX()->Draw("same");
     */
 
+   //the following code only needs to be run if creating templates from scratch. otherwise read them in from the input file 
+   /*
 
     TF1 *F1 = (TF1 *)inf2->Get("F1_6");
 
@@ -249,8 +294,6 @@ void SignalSwapOnly()
     background2->FixParameter(10, F2->GetParameter(10));
     background2->FixParameter(11, F2->GetParameter(11));
 
-   //the following code only needs to be run if creating templates from scratch. otherwise read them in from the input file 
-   /*
    cout << "Generating template (1) - S1S2" << endl;
    TH2D *S1S2Template = CreateTemplate(signal1, signal2, S1S2Mass);
    cout << "Generating template (2) - S1SW2" << endl;
@@ -299,7 +342,6 @@ void SignalSwapOnly()
 
 
 
-    /*
     TCanvas *cg = new TCanvas("cg", "cg", 800, 1200);
     cg->Divide(2, 3);
     cg->cd(1);
@@ -309,7 +351,7 @@ void SignalSwapOnly()
 
     cout << "defining fit function" << endl;
 
-    TF2 *fitF1F2 = new TF2("fitF1F2", MyCustomFunction, 1.6, 2.1, 1.6, 2.1, 9);
+    TF2 *fitF1F2 = new TF2("fitF1F2", MyCustomFunction, 1.55, 2.2, 1.55, 2.2, 9);
     for (int i = 0; i < 9; i++)
     {
         fitF1F2->SetParameter(i, 100.);
@@ -323,28 +365,31 @@ void SignalSwapOnly()
         fitF1F2->SetParLimits(i, 000.0, M1M2Mass->GetEntries());
     }
     TH2D *M1M2MassClone = (TH2D *)M1M2Mass->Clone("M1M2MassClone");
-    for (int i = 3; i < 4; i++)
+    for (int i = 0; i < 1; i++)
     {
-        fitF1F2->FixParameter(0, S1S2Mass->GetEntries());     // s1s2
+        fitF1F2->SetParameter(0, S1S2Mass->GetEntries());     // s1s2
         //////////
-        fitF1F2->FixParameter(1, BkgOnlyMass->GetEntries());  // b1b2
-        fitF1F2->FixParameter(2, SwapOnlyMass->GetEntries()); // sw1sw2
-        fitF1F2->FixParameter(3, S1B2Mass->GetEntries());     // s1b2
-        fitF1F2->FixParameter(4, B1S2Mass->GetEntries());     // b1s2
-        fitF1F2->FixParameter(5, SW1S2Mass->GetEntries());    // sw1s2
-        fitF1F2->FixParameter(6, S1SW2Mass->GetEntries());    // s1sw2
-        fitF1F2->FixParameter(7, B1SW2Mass->GetEntries());    // b1sw2
-        fitF1F2->FixParameter(8, SW1B2Mass->GetEntries());    // sw1b2
+        fitF1F2->SetParameter(1, B1B2Mass->GetEntries());  // b1b2
+        fitF1F2->SetParameter(2, SW1SW2Mass->GetEntries()); // sw1sw2
+        fitF1F2->SetParameter(3, S1B2Mass->GetEntries());     // s1b2
+        fitF1F2->SetParameter(4, B1S2Mass->GetEntries());     // b1s2
+        fitF1F2->SetParameter(5, SW1S2Mass->GetEntries());    // sw1s2
+        fitF1F2->SetParameter(6, S1SW2Mass->GetEntries());    // s1sw2
+        fitF1F2->SetParameter(7, B1SW2Mass->GetEntries());    // b1sw2
+        fitF1F2->SetParameter(8, SW1B2Mass->GetEntries());    // sw1b2
         ///////////////
+        /*
         for (int i=1; i<9; i++){
-            fitF1F2->FixParameter(i, 0.0);
+            fitF1F2->SetParameter(i, 100.0);
         }
+        */
 
         can->cd(1);
         M1M2Mass->Draw("surf1");
 
         can->cd(2);
         cout << "---------" << endl;
+        /*
         cout << "Released parameters are:" << endl;
         if (i >= 0)
         {
@@ -392,19 +437,21 @@ void SignalSwapOnly()
             cout << "par(7) - B1SW2" << endl;
             cout << "par(8) - SW1B2" << endl;
         }
+        */
         cout << "iteration = " << endl;
         for (int i = 0; i < 10; i++)
         {
             cout << i << endl;
-            M1M2MassClone->Fit(fitF1F2, "Q");
+            M1M2MassClone->Fit(fitF1F2, "LQ");
         }
-        M1M2MassClone->Fit(fitF1F2, "M");
+        M1M2MassClone->Fit(fitF1F2, "LM");
         can->cd(2);
         M1M2MassClone->Draw("surf1");
 
         can->cd(3);
-        TH2D *FitCheck = new TH2D("FitCheck", "Data-Fit", 1000 / rebin_factor, 1.6, 2.1, 1000 / rebin_factor, 1.6, 2.1);
+        TH2D *FitCheck = new TH2D("FitCheck", "Data-Fit", 1000 / rebin_factor, 1.55, 2.2, 1000 / rebin_factor, 1.55, 2.2);
         //FitCheck->Add(M1M2MassClone);
+        FitCheck->SetMaximum(M1M2Mass->GetMaximum());
         FitCheck->Add(M1M2Mass);
         FitCheck->Add(fitF1F2, -1);
         FitCheck->RebinX(2);
@@ -426,9 +473,9 @@ void SignalSwapOnly()
 
         getchar();
     }
-    */
 
 
+    /*
     outfile->cd();
 
     S1S2Template->Write();
@@ -440,6 +487,7 @@ void SignalSwapOnly()
     B1S2Template->Write();
     B1SW2Template->Write();
     B1B2Template->Write();
+    */
     /*
     M1M2MassClone->Write();
     M1M2Mass->Write();
