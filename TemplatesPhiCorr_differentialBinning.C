@@ -17,6 +17,7 @@
 #include "TMath.h"
 #include <TPDF.h>
 #include "TF1.h"
+#include "TF2.h"
 #include "TCanvas.h"
 
 double histo_entries = 3.0e+08;
@@ -91,7 +92,7 @@ TH2D *CreateClone(TH2D *inputHisto, TH2D *templato)
 void TemplatesPhiCorr_differentialBinning(int bin)
 {
 
-    TString outfile = TString(Form("templates_01_bin%d.root", bin));
+   // TString outfile = TString(Form("templates_01_bin%d.root", bin));
     TFile *results = new TFile(outfile, "recreate");
 
     //~~First open the file nad retrieve all histograms & their x and y projections
@@ -107,12 +108,10 @@ void TemplatesPhiCorr_differentialBinning(int bin)
     TString fits_file_path = "TF1_outputs_12Nov_01_allbins.root";
     // TString fits_file_path = "TF1_outputs_28Oct_swap_mean.root";
     TFile *inf2 = TFile::Open(fits_file_path);
-    TString templates_path = "templates_out_12Nov.root"; // actual one we need
+    TString templates_path = Form("templates_01_bin%d.root", bin); // actual one we need
     TFile *inf3 = TFile::Open(templates_path);
 
-    for (int j = bin; j < bin+1; j++)
-    {
-        TH2F *M1M2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("M1M2Mass_%d", j)));
+        TH2F *M1M2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("M1M2Mass_%d", bin)));
         if (!M1M2Mass)
             cout << "hey no m1m2 mass .. !!!!!" << endl;
         M1M2Mass->RebinX(rebin_factor);
@@ -121,14 +120,14 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         TH1D *M1M2hy = M1M2Mass->ProjectionY("M1M2hy");
         // TH2F *M1M2Mass = new TH2D("M1M2Mass", "M1M2Mass", 100, 1.6, 2.1, 100, 1.6, 2.1); // Full Range of F1F2 Mass
 
-        TH2F *S1S2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("S1S2Mass_%d", j)));
+        TH2F *S1S2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("S1S2Mass_%d", bin)));
         S1S2Mass->RebinX(rebin_factor);
         S1S2Mass->RebinY(rebin_factor);
         S1S2Mass->SetMinimum(0);
         TH1D *S1S2hx = S1S2Mass->ProjectionX("S1S2hx");
         TH1D *S1S2hy = S1S2Mass->ProjectionY("S1S2hy");
 
-        TH2F *SignalSwap12Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SignalSwapMass_%d", j)));
+        TH2F *SignalSwap12Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SignalSwapMass_%d", bin)));
         SignalSwap12Mass->SetMinimum(0);
         SignalSwap12Mass->RebinX(rebin_factor);
         SignalSwap12Mass->RebinY(rebin_factor);
@@ -136,46 +135,46 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         TH1D *SSWhx = SignalSwap12Mass->ProjectionX("SSWhx");
         TH1D *SSWhy = SignalSwap12Mass->ProjectionY("SSWhy");
 
-        TH2F *SW1SW2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SW1SW2Mass_%d", j)));
+        TH2F *SW1SW2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SW1SW2Mass_%d", bin)));
         SW1SW2Mass->SetMinimum(0);
         SW1SW2Mass->RebinX(rebin_factor);
         SW1SW2Mass->RebinY(rebin_factor);
         TH1D *SWhx = SW1SW2Mass->ProjectionX("SWhx");
         TH1D *SWhy = SW1SW2Mass->ProjectionY("SWhy");
 
-        TH2F *B1B2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("B1B2Mass_%d", j)));
+        TH2F *B1B2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("B1B2Mass_%d", bin)));
         B1B2Mass->SetMinimum(0);
         B1B2Mass->RebinX(rebin_factor);
         B1B2Mass->RebinY(rebin_factor);
         TH1D *Bkghx = B1B2Mass->ProjectionX("Bkghx");
         TH1D *Bkghy = B1B2Mass->ProjectionY("Bkghy");
 
-        TH2F *S1SW2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("S1SW2Mass_%d", j)));
+        TH2F *S1SW2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("S1SW2Mass_%d", bin)));
         S1SW2Mass->SetMinimum(0);
         S1SW2Mass->RebinX(rebin_factor);
         S1SW2Mass->RebinY(rebin_factor);
 
-        TH2F *SW1S2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SW1S2Mass_%d", j)));
+        TH2F *SW1S2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SW1S2Mass_%d", bin)));
         SW1S2Mass->SetMinimum(0);
         SW1S2Mass->RebinX(rebin_factor);
         SW1S2Mass->RebinY(rebin_factor);
 
-        TH2F *S1B2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("S1B2Mass_%d", j)));
+        TH2F *S1B2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("S1B2Mass_%d", bin)));
         S1B2Mass->SetMinimum(0);
         S1B2Mass->RebinX(rebin_factor);
         S1B2Mass->RebinY(rebin_factor);
 
-        TH2F *B1S2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("B1S2Mass_%d", j)));
+        TH2F *B1S2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("B1S2Mass_%d", bin)));
         B1S2Mass->SetMinimum(0);
         B1S2Mass->RebinX(rebin_factor);
         B1S2Mass->RebinY(rebin_factor);
 
-        TH2F *SW1B2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SW1B2Mass_%d", j)));
+        TH2F *SW1B2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("SW1B2Mass_%d", bin)));
         SW1B2Mass->SetMinimum(0);
         SW1B2Mass->RebinX(rebin_factor);
         SW1B2Mass->RebinY(rebin_factor);
 
-        TH2F *B1SW2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("B1SW2Mass_%d", j)));
+        TH2F *B1SW2Mass = dynamic_cast<TH2F *>(inf1->Get(Form("B1SW2Mass_%d", bin)));
         B1SW2Mass->SetMinimum(0);
         B1SW2Mass->RebinX(rebin_factor);
         B1SW2Mass->RebinY(rebin_factor);
@@ -195,7 +194,7 @@ void TemplatesPhiCorr_differentialBinning(int bin)
 
         double fit_range_low = 1.55, fit_range_high = 2.2;
 
-        /*
+        
         S1S2Template = (TH2D *)inf3->Get("S1S2Mass_6Template");
         if (!S1S2Template)
             cout << "NO S1S2temp!!!!!!!!!!!!!!" << endl;
@@ -207,7 +206,6 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         SW1S2Template = (TH2D *)inf3->Get("SW1S2Mass_6Template");
         SW1SW2Template = (TH2D *)inf3->Get("SW1SW2Mass_6Template");
         SW1B2Template = (TH2D *)inf3->Get("SW1B2Mass_6Template");
-        */
 
         // following is code to check each created template agaist data
         /*
@@ -254,6 +252,7 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         */
 
         // the following code only needs to be run if creating templates from scratch. otherwise read them in from the input file
+        /*
 
         // TF1 *F1 = (TF1 *)inf2->Get("F1_6");
         cout << " <<<<<<<<<<<<" << endl;
@@ -358,8 +357,8 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         B1B2Template->Draw("surf1");
 
         temp_canvas->SaveAs(Form("pdfs/templates_21Nov_bin_%d.pdf", j));
+        */
 
-        /*
         TCanvas *cg = new TCanvas("cg", "cg", 800, 1200);
         cg->Divide(2, 3);
         cg->cd(1);
@@ -393,7 +392,7 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         {
             // fitF1F2->SetParameter(0, S1S2Mass->GetEntries());     // s1s2
             fitF1F2->SetParameter(0, 100.);                     // s1s2
-            ////////////////////////////
+            /*
             fitF1F2->FixParameter(1, B1B2Mass->GetEntries());   // b1b2
             fitF1F2->FixParameter(2, SW1SW2Mass->GetEntries()); // sw1sw2
             fitF1F2->FixParameter(3, S1B2Mass->GetEntries());   // s1b2
@@ -402,7 +401,7 @@ void TemplatesPhiCorr_differentialBinning(int bin)
             fitF1F2->FixParameter(6, S1SW2Mass->GetEntries());  // s1sw2
             fitF1F2->FixParameter(7, B1SW2Mass->GetEntries());  // b1sw2
             fitF1F2->FixParameter(8, SW1B2Mass->GetEntries());  // sw1b2
-            ////////////////////////////
+            */
             can->cd(1);
             M1M2Mass->Draw("surf1");
 
@@ -436,7 +435,7 @@ void TemplatesPhiCorr_differentialBinning(int bin)
 
             double fract = fitF1F2->GetParameter(0) / S1S2Mass->GetEntries();
             cout << " <<<<<<<<<<<<" << endl;
-            cout << " << BIN = " << j << " << " << endl;
+            cout << " << BIN = " << bin << " << " << endl;
             cout << " <<<<<<<<<<<<" << endl;
             cout << "fit S1S2 yield = " << fitF1F2->GetParameter(0) << endl;
             cout << "fit yield / data yield for S1S2 = " << fitF1F2->GetParameter(0) << " / " << S1S2Mass->GetEntries() << endl;
@@ -448,8 +447,8 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         // fit_range_high +=0.02;
 
         // getchar();
-        */
 
+        /*
         results->cd();
 
         S1S2Template->Write();
@@ -461,7 +460,8 @@ void TemplatesPhiCorr_differentialBinning(int bin)
         B1S2Template->Write();
         B1SW2Template->Write();
         B1B2Template->Write();
-    }
+        can->Write();
+        */
     /*
     M1M2MassClone->Write();
     M1M2Mass->Write();
