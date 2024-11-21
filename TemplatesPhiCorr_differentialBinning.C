@@ -1,3 +1,5 @@
+//old version was called SignalSwapOnly.C 
+//updated to include all bins 
 #include <iostream>
 #include "TRandom.h"
 #include "TFile.h"
@@ -85,9 +87,8 @@ TH2D *CreateClone(TH2D *inputHisto, TH2D *templato)
 }
 
 
-void SignalSwapOnly()
+void SignalSwapOnly(int goodbin)
 {
-    TFile *outfile = new TFile("out.root", "recreate");
   // TFile *outfile = new TFile("templates_out_12Nov.root", "recreate");
 
     //~~First open the file nad retrieve all histograms & their x and y projections
